@@ -18,7 +18,7 @@ IDXfile::IDXfile(std::string path) : path(path) {
 
 	input.close();
 
-	//Bit-shifting into a 32-bit integer
+	//Bit-shifting into a 32-bit integer magicNum
 	magicNum = int((bytes[0]) << 24 |
 		(bytes[1]) << 16 |
 		(bytes[2]) << 8 |
