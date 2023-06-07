@@ -44,7 +44,4 @@ private:
 	int cols	   = 0;
 
 	
-
-
-
 };
