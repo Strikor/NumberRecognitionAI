@@ -11,7 +11,7 @@
 class IDXfile {
 public:
 	IDXfile() {};
-	IDXfile(std::string) {};
+	IDXfile(std::string);
 
 	std::vector<float> getImage() {
 		std::vector<float> ret;
