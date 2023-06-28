@@ -13,15 +13,19 @@ public:
     int backpropagate(const std::vector<float> activations, std::vector<float> expected);
 
 private:
-    int                 numLayers; //Total Layers
-    std::vector<int>    numNodes;  //Per Layer
+    int                 layers; //Total Layers
+    std::vector<int>    nodes;  //Per Layer
     float               learnRate; 
-    int                 numEpoch;  //Iteration through total dataset
+    int                 epoch;  //Iteration through total dataset
 
-    //Node Specific Variables
-    //[connectionLayer][startNode][endNode]
+//Node Specific Variables
+    //[connectionLayer][startNode][endNode]weight
+        //weights are dependant on the intermediate layer instead of the nodes
     std::vector<std::vector<std::vector<float>>> weights;
-	std::vector<std::vector<std::vector<float>>> biases;
+
+    //[layer - 1][node]bias
+        //biases are tied to a specific neuron instead of the intermediate layer
+	std::vector<std::vector<float>> biases;
 
 
 
