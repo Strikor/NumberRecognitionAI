@@ -53,7 +53,14 @@ Network::Network(const int layers, const std::vector<int>& nodes, const float le
 int Network::learn() {
     //loop
         //Create a batch (epoch)
+            //Figure out how to grab the data
+            //Figure out what the ideal batch size is and what I should use for it
+                //Probably pass the batch size in as an argument?
+            //Store the batch?
+            //Probably need to pass a pointer through instead of the actual data to avoid copying the data
         //Pass each batch to feedforward()
+            //How should I do this?
+            //I don't want to copy data but I also need to split the data into pieces which can be sent
         //Take cost of previous batch (how far off of expected)
         //Use cost for backpropagate()
 }
