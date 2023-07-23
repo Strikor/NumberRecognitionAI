@@ -8,7 +8,7 @@
 class Network {
 public:
     Network(const int layers, const std::vector<int>& nodes, const float learn);
-    int learn(); //The actual learning cycle
+    int learn(int batchSize); //The actual learning cycle
     std::vector<float> feedforward(const std::vector<float> image); //Output consists of one-hot encoded vector //Output is cost
     int backpropagate(const std::vector<float> activations, std::vector<float> expected);
 
@@ -17,6 +17,8 @@ private:
     std::vector<int>    nodes;  //Per Layer
     float               learnRate; 
     int                 epoch;  //Iteration through total dataset
+    IDXfile             data;   //Data to be used for training and testing
+    IDXfile             lable;  //lables for data
 
 //Node Specific Variables
     //[connectionLayer][startNode][endNode]weight

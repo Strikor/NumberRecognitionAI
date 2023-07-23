@@ -43,7 +43,7 @@ IDXfile::IDXfile(std::string path) : path(path) {
 		curByte = 8;
 
 		//Creates a 2d vector that will contain the one-hot encoded data. Label of 4 = {0, 0, 0, 0, 1, 0, 0, 0, 0, 0}
-		std::vector<std::vector<float>> one_hot_encoded_labels(bytes.size() - curByte, std::vector<float>(10, 0.0f));
+		one_hot_encoded_labels.resize(bytes.size() - curByte, std::vector<float>(10, 0.0f));
 
 		//Generates the encoded data
 		for (size_t i = 0; i < bytes.size() - curByte; ++i) {

@@ -5,6 +5,7 @@
 #include "NeuralNetwork.h"
 #include "IDXfile_Import.h"
 #include <vector>
+#include <set>
 #include <random>
 
 Network::Network(const int layers, const std::vector<int>& nodes, const float learn){
@@ -46,23 +47,54 @@ Network::Network(const int layers, const std::vector<int>& nodes, const float le
 		}
 	}
 
-    
+//Grab data from file
+    data = IDXfile("train-images.idx3-ubyte");
+    lable = IDXfile("train-labels.idx1-ubyte");
     
 }
 
-int Network::learn() {
+int Network::learn(int batchSize) {
     //loop
-        //Create a batch (epoch)
-            //Figure out how to grab the data
             //Figure out what the ideal batch size is and what I should use for it
-                //Probably pass the batch size in as an argument?
-            //Store the batch?
-            //Probably need to pass a pointer through instead of the actual data to avoid copying the data
+
         //Pass each batch to feedforward()
             //How should I do this?
-            //I don't want to copy data but I also need to split the data into pieces which can be sent
+            
         //Take cost of previous batch (how far off of expected)
         //Use cost for backpropagate()
+
+    //[Image][pixel values] value
+    std::vector<std::vector<float>> images;
+
+    for(int i = 0; i < data.getNumItems(); ++i) {
+        images.push_back(data.getImage());
+    }
+
+    //Randomly shuffle the images vector
+    std::vector<int> batches = createRandomIndexes(images.size(), images.size() - 1);
+
+    
+    
+
+    
+}
+
+std::vector<int> createRandomIndexes(int numIndexes, int maxIndex) {
+    std::vector<int> result;
+    std::set<int> seen;
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> dis(0, maxIndex);
+
+    while (result.size() < numIndexes) {
+        int index = dis(gen);
+        if (seen.count(index) == 0) {
+            seen.insert(index);
+            result.push_back(index);
+        }
+    }
+
+    return result;
 }
 
 std::vector<float> Network::feedforward(std::vector<float> image){
