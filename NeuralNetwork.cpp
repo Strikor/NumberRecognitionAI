@@ -53,7 +53,7 @@ Network::Network(const int layers, const std::vector<int>& nodes, const float le
     
 }
 
-int Network::learn(int batchSize) {
+void Network::learn(int batchSize) {
     //loop
             //Figure out what the ideal batch size is and what I should use for it
 
@@ -65,6 +65,7 @@ int Network::learn(int batchSize) {
 
     //[Image][pixel values] value
     std::vector<std::vector<float>> images;
+    std::vector<std::vector<float>> labels = lable.getLabels();
 
     for(int i = 0; i < data.getNumItems(); ++i) {
         images.push_back(data.getImage());
@@ -73,6 +74,14 @@ int Network::learn(int batchSize) {
     //Randomly shuffle the images vector
     std::vector<int> batches = createRandomIndexes(images.size(), images.size() - 1);
 
+    for(int i = 0; i < batches.size(); i += batchSize) {
+        std::vector<std::vector<float>, std::vector<int>> batch;
+        for(int j = 0; j < batchSize; ++j) {
+            batch.push_back(images[batches[i + j]], labels[batches[i + j]]);
+        }
+
+        feedforward(batch);
+    }
     
     
 
@@ -97,9 +106,49 @@ std::vector<int> createRandomIndexes(int numIndexes, int maxIndex) {
     return result;
 }
 
-std::vector<float> Network::feedforward(std::vector<float> image){
+int Network::backpropagate(const std::vector<float> activations, std::vector<float> expected){ //Output activations & one-hot encoded vector
+    //Take the activations from the feedforward and compare to one-hots
+    //Calculate cost for each output node
+    //Work backwards
+}
+
+std::vector<float> Network::feedforward(std::vector<std::vector<float>> batch, std::vector<std::vector<float>> labels){
     //Run through the network and retrieve an output
     //calculate and return final layer activation
+
+    std::vector<float> costs(10);
+
+    for(int i = 0; i < batch.size(); ++i) {
+        std::vector<float> activations = batch[i];
+        for(int j = 0; j < layers - 1; ++j) {
+            std::vector<float> newActivations;
+            for(int k = 0; k < nodes[j + 1]; ++k) {
+                float activation = 0;
+                for(int l = 0; l < nodes[j]; ++l) {
+                    activation += activations[l] * weights[j][l][k];
+                }
+                activation += biases[j][k];
+                newActivations.push_back(activation);
+            }
+            activations = newActivations;
+        }
+
+
+        std::vector<float> costs = calculateCost(activations, labels[i]); // Calculate cost for each batch
+        // Do something with the cost
+    }
+    
+}
+
+std::vector<float> Network::calculateCost(std::vector<float> activations, std::vector<float> expected){
+    //Calculate the cost of the activations
+    //Return the cost
+    std::vector<float> costs;
+    for(int i = 0; i < activations.size(); ++i) {
+        costs.push_back((activations[i] - expected[i]) * (activations[i] - expected[i]));
+    }
+
+    
 }
 
 int Network::backpropagate(const std::vector<float> activations, std::vector<float> expected){ //Output activations & one-hot encoded vector
