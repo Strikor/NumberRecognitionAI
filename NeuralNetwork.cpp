@@ -8,6 +8,16 @@
 #include <set>
 #include <random>
 
+int main() {
+    // Create a neural network object
+    Network network(3, {784, 30, 10}, 0.1);
+
+    // Train the network
+    network.learn(32);
+
+    return 0;
+}
+
 Network::Network(const int layers, const std::vector<int>& nodes, const float learn){
     //Establish Hyper Parameters
     this->layers = layers;
@@ -50,22 +60,23 @@ Network::Network(const int layers, const std::vector<int>& nodes, const float le
 
 void Network::learn(int batchSize) {
     //loop
+    int correctCount = 0;
     for (int i = 0; i < data.getNumItems(); ++i) {
         //Figure out what the ideal batch size is and what I should use for it
         std::vector<std::vector<float>> images;
         std::vector<std::vector<float>> labels = label.getLabels();
 
-        for (int i = 0; i < data.getNumItems(); ++i) {
+        for (int j = 0; j < data.getNumItems(); ++j) {
             images.push_back(data.getImage());
         }
 
         //Randomly shuffle the images vector
         std::vector<int> batches = createRandomIndexes(images.size(), images.size() - 1);
 
-        for (int i = 0; i < batches.size(); i += batchSize) {
+        for (int k = 0; k < batches.size(); k += batchSize) {
             std::vector<std::vector<float>> batch;
-            for (int j = 0; j < batchSize; ++j) {
-                batch.push_back(images[batches[i + j]]);
+            for (int l = 0; l < batchSize; ++l) {
+            batch.push_back(images[batches[k + l]]);
             }
 
             //Pass each batch to feedforward()
@@ -73,15 +84,27 @@ void Network::learn(int batchSize) {
 
             //Take cost of previous batch (how far off of expected)
             std::vector<float> expected;
-            for (int j = 0; j < batchSize; ++j) {
-                expected.push_back(labels[batches[i + j]][0]);
+            for (int m = 0; m < batchSize; ++m) {
+            expected.push_back(labels[batches[k + m]][0]);
             }
             std::vector<float> costs = calculateCost(activations, expected);
 
             //Use cost for backpropagate()
-            backpropagate(activations, expected);
+            int predictedIndex = backpropagate(activations, expected);
+
+            // Check if the prediction is correct
+            if (predictedIndex == expected[0]) {
+            correctCount++;
+            std::cout << "Test " << i << " - Correct prediction! Expected: " << expected[0] << ", Predicted: " << predictedIndex << std::endl;
+            } else {
+            std::cout << "Test " << i << " - Incorrect prediction! Expected: " << expected[0] << ", Predicted: " << predictedIndex << std::endl;
+            }
         }
     }
+
+    // Calculate success rate
+    float successRate = static_cast<float>(correctCount) / data.getNumItems();
+    std::cout << "Success rate of the current epoch: " << successRate * 100 << "%" << std::endl;
 }
 
 std::vector<int> Network::createRandomIndexes(int numIndexes, int maxIndex) {
@@ -112,24 +135,18 @@ int Network::backpropagate(const std::vector<float>& activations, const std::vec
 
     // Update weights and biases
     for (int i = layers - 2; i >= 0; --i) {
+        std::vector<float> newErrors(nodes[i]);
         for (int j = 0; j < nodes[i]; ++j) {
             for (int k = 0; k < nodes[i + 1]; ++k) {
                 weights[i][j][k] -= learnRate * errors[k] * activations[j];
+                newErrors[j] += errors[k] * weights[i][j][k];
             }
+        }
+        errors = newErrors;
+        for (int j = 0; j < nodes[i + 1]; ++j) {
             biases[i][j] -= learnRate * errors[j];
         }
     }
-
-    // Work backwards
-    std::vector<float> newErrors(nodes[layers - 2]);
-    for (int j = 0; j < nodes[layers - 2]; ++j) {
-        float error = 0;
-        for (int k = 0; k < nodes[layers - 1]; ++k) {
-            error += errors[k] * weights[layers - 2][j][k];
-        }
-        newErrors[j] = error;
-    }
-    errors = newErrors;
 
     // Return the index of the output node with the highest activation
     int maxIndex = 0;
@@ -192,10 +209,4 @@ float Network::calculateAverageCost(const std::vector<float>& costs) {
         sum += cost;
     }
     return sum / costs.size();
-}       for(int j = 0; j < activations[i].size(); ++j) {
-            cost += (activations[i][j] - expected[j]) * (activations[i][j] - expected[j]);
-        }
-        costs.push_back(cost);
-    }
-    return costs;
 }
