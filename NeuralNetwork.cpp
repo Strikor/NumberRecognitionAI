@@ -5,8 +5,13 @@
 #include "NeuralNetwork.h"
 #include "IDXfile_Import.h"
 #include <vector>
+#include <mutex>
 #include <set>
 #include <random>
+#include <thread>
+
+//A lock for when a thread attempts to output to the console
+std::mutex coutMtx;
 
 Network::Network(const int layers, const std::vector<int>& nodes, const float learn){
     //Establish Hyper Parameters
@@ -48,52 +53,72 @@ Network::Network(const int layers, const std::vector<int>& nodes, const float le
     lable = IDXfile("train-labels.idx1-ubyte");
 }
 
-void Network::learn(int batchSize) {
+void Network::learn(int batchSize, int epochs) {
     //loop
-    int correctCount = 0;
-    for (int i = 0; i < data.getNumItems(); ++i) {
-        //Figure out what the ideal batch size is and what I should use for it
-        std::vector<std::vector<float>> images;
-        std::vector<std::vector<float>> labels = lable.getLabels();
+    std::vector<std::vector<float>> images;
+    std::vector<std::vector<float>> labels = lable.getLabels();
 
-        for (int j = 0; j < data.getNumItems(); ++j) {
-            images.push_back(data.getImage());
-        }
+    for (int j = 0; j < data.getNumItems(); ++j) {
+        images.push_back(data.getImage());
+    }
+
+    for (int i = 0; i < epochs; ++i) {
+        int correctCount = 0;
+        //Figure out what the ideal batch size is and what I should use for it
 
         //Randomly shuffle the images vector
         std::vector<int> batches = createRandomIndexes(images.size(), images.size() - 1);
 
+        std::vector<std::thread> thread_objects;
+
+        //Run a loop for each batch
         for (int k = 0; k < batches.size(); k += batchSize) {
             std::vector<std::vector<float>> batch;
             for (int l = 0; l < batchSize; ++l) {
-            batch.push_back(images[batches[k + l]]);
+                batch.push_back(images[batches[k + l]]);
             }
 
-            //Pass each batch to feedforward()
-            std::vector<std::vector<std::vector<float>>> activations = feedforward(batch);
+            //Create threads to faster process the threads
+            thread_objects.emplace_back([&, k, batch]() {
+                //Pass each batch to feedforward()
+                std::vector<std::vector<std::vector<float>>> activations = feedforward(batch);
 
-            //Take cost of previous batch (how far off of expected)
-            std::vector<std::vector<float>> expected;
-            for (int m = 0; m < batchSize; ++m) {
-                expected.push_back(labels[batches[k + m]]);
-            }
+                //Take cost of previous batch (how far off of expected)
+                std::vector<std::vector<float>> expected;
+                for (int m = 0; m < batchSize; ++m) {
+                    expected.push_back(labels[batches[k + m]]);
+                }
+                
+                {
+                    std::lock_guard<std::mutex> lock(coutMtx);
+                    std::cout << "[" << k << "/" << data.getNumItems() << "]" << std::endl;
+                }
+                
 
-            backpropagate(activations, expected);
-            /*int predictedIndex = 
-       
-            // Check if the prediction is correct
-            if (predictedIndex == expected[0]) {
-            correctCount++;
-            std::cout << "Test " << i << " - Correct prediction! Expected: " << expected[0] << ", Predicted: " << predictedIndex << std::endl;
-            } else {
-            std::cout << "Test " << i << " - Incorrect prediction! Expected: " << expected[0] << ", Predicted: " << predictedIndex << std::endl;
-            }*/
+                correctCount += backpropagate(activations, expected);
+                /*int predictedIndex =
+
+                // Check if the prediction is correct
+                if (predictedIndex == expected[0]) {
+                correctCount++;
+                std::cout << "Test " << i << " - Correct prediction! Expected: " << expected[0] << ", Predicted: " << predictedIndex << std::endl;
+                } else {
+                std::cout << "Test " << i << " - Incorrect prediction! Expected: " << expected[0] << ", Predicted: " << predictedIndex << std::endl;
+                }*/
+                return;
+            });
+            
         }
-    }
 
-    // Calculate success rate
-    float successRate = static_cast<float>(correctCount) / data.getNumItems();
-    std::cout << "Success rate of the current epoch: " << successRate * 100 << "%" << std::endl;
+        for (auto& thread : thread_objects) {
+            if (thread.joinable()) {
+                thread.join();
+            }
+        }
+        // Calculate success rate
+        float successRate = static_cast<float>(correctCount) / data.getNumItems();
+        std::cout << "Success rate of epoch: " << successRate * 100 << "%" << std::endl;
+    }
 }
 
 std::vector<int> Network::createRandomIndexes(int numIndexes, int maxIndex) {
@@ -151,11 +176,13 @@ int Network::backpropagate(const std::vector<std::vector<std::vector<float>>> &a
         // Check if the prediction is correct
         int predictedIndex = std::distance(activations.back().begin(), std::max_element(activations.back().begin(), activations.back().end()));
         int expectedIndex = std::distance(expectedOutput[n].begin(), std::max_element(expectedOutput[n].begin(), expectedOutput[n].end()));
-        if (predictedIndex == expectedIndex) {
+
+        //Displays individual reports of completion
+        /*if (predictedIndex == expectedIndex) {
             std::cout << "Prediction: " << predictedIndex << ", Expected: " << expectedIndex << " - Correct" << std::endl;
         } else {
             std::cout << "Prediction: " << predictedIndex << ", Expected: " << expectedIndex << " - Incorrect" << std::endl;
-        }
+        }*/
     }
 
     // Average updates and apply them to weights and biases
@@ -181,9 +208,13 @@ int Network::backpropagate(const std::vector<std::vector<std::vector<float>>> &a
         }
     }
     float percentCorrect = static_cast<float>(correctCount) / allActivations.size() * 100;
-    std::cout << "Percent correct for the batch: " << percentCorrect << "%" << std::endl;
+    {
+        std::lock_guard<std::mutex> lock(coutMtx);
+        std::cout << "Percent correct for the batch: " << percentCorrect << "%" << std::endl;
+    }
+    
 
-    return 0;
+    return correctCount;
 }
 
 std::vector<std::vector<std::vector<float>>> Network::feedforward(std::vector<std::vector<float>> batch){

@@ -9,7 +9,7 @@
 class Network {
 public:
     Network(const int layers, const std::vector<int>& nodes, const float learn);
-    void learn(int batchSize); //The actual learning cycle
+    void learn(int batchSize, int epochs); //The actual learning cycle
     std::vector<std::vector<std::vector<float>>> feedforward(std::vector<std::vector<float>> batch);
     //Output consists of one-hot encoded vector //Output is cost
     std::vector<float> calculateCost(const std::vector<std::vector<std::vector<float>>> activations, const std::vector<float> expected); //Cost function
@@ -19,7 +19,7 @@ private:
     int                 layers; //Total Layers
     std::vector<int>    nodes;  //Per Layer
     float               learnRate; 
-    int                 epoch;  //Iteration through total dataset
+    //int                 epoch; //How many iteration through total dataset
     IDXfile             data;   //Data to be used for training and testing
     IDXfile             lable;  //lables for data
 
