@@ -147,6 +147,15 @@ int Network::backpropagate(const std::vector<std::vector<std::vector<float>>> &a
                 biasUpdates[i][j] += learnRate * errors[j];
             }
         }
+
+        // Check if the prediction is correct
+        int predictedIndex = std::distance(activations.back().begin(), std::max_element(activations.back().begin(), activations.back().end()));
+        int expectedIndex = std::distance(expectedOutput[n].begin(), std::max_element(expectedOutput[n].begin(), expectedOutput[n].end()));
+        if (predictedIndex == expectedIndex) {
+            std::cout << "Prediction: " << predictedIndex << ", Expected: " << expectedIndex << " - Correct" << std::endl;
+        } else {
+            std::cout << "Prediction: " << predictedIndex << ", Expected: " << expectedIndex << " - Incorrect" << std::endl;
+        }
     }
 
     // Average updates and apply them to weights and biases
