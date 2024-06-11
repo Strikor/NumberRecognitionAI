@@ -8,16 +8,6 @@
 #include <set>
 #include <random>
 
-int main() {
-    // Create a neural network object
-    Network network(3, {784, 30, 10}, 0.1);
-
-    // Train the network
-    network.learn(32);
-
-    return 0;
-}
-
 Network::Network(const int layers, const std::vector<int>& nodes, const float learn){
     //Establish Hyper Parameters
     this->layers = layers;
@@ -55,7 +45,7 @@ Network::Network(const int layers, const std::vector<int>& nodes, const float le
 
     //Grab data from file
     data = IDXfile("train-images.idx3-ubyte");
-    label = IDXfile("train-labels.idx1-ubyte");
+    lable = IDXfile("train-labels.idx1-ubyte");
 }
 
 void Network::learn(int batchSize) {
@@ -64,7 +54,7 @@ void Network::learn(int batchSize) {
     for (int i = 0; i < data.getNumItems(); ++i) {
         //Figure out what the ideal batch size is and what I should use for it
         std::vector<std::vector<float>> images;
-        std::vector<std::vector<float>> labels = label.getLabels();
+        std::vector<std::vector<float>> labels = lable.getLabels();
 
         for (int j = 0; j < data.getNumItems(); ++j) {
             images.push_back(data.getImage());

@@ -4,6 +4,7 @@
 // 6/7/2023
 
 #include <vector>
+#include "IDXfile_Import.h"
 
 class Network {
 public:
@@ -29,6 +30,8 @@ private:
     //[layer - 1][node]bias
         //biases are tied to a specific neuron instead of the intermediate layer
 	std::vector<std::vector<float>> biases;
+
+    std::vector<int> createRandomIndexes(int numIndexes, int maxIndex);
 
 
 
