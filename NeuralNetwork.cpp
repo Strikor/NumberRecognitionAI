@@ -80,7 +80,7 @@ void Network::learn(int batchSize) {
             std::vector<float> costs = calculateCost(activations, expected);
 
             //Use cost for backpropagate()
-            int predictedIndex = backpropagate(activations, expected);
+            int predictedIndex = backpropagate(activations[activations.size() - 1], expected);
 
             // Check if the prediction is correct
             if (predictedIndex == expected[0]) {
@@ -115,7 +115,7 @@ std::vector<int> Network::createRandomIndexes(int numIndexes, int maxIndex) {
     return result;
 }
 
-int Network::backpropagate(const std::vector<float>& activations, const std::vector<float>& expected) {
+int Network::backpropagate(const std::vector<float> activations, const std::vector<float> expected) {
     // Take the activations from the feedforward and compare to one-hots
     // Calculate cost for each output node
     std::vector<float> errors(activations.size());
@@ -167,8 +167,8 @@ std::vector<std::vector<float>> Network::feedforward(std::vector<std::vector<flo
                     sum += activation[l] * weights[j][l][k];
                 }
                 sum += biases[j][k];
-                // Apply activation function (e.g., sigmoid)
-                float activatedSum = sigmoid(sum);
+                // Apply activation function
+                float activatedSum = (sum > 0) ? sum : 0;
                 newActivations.push_back(activatedSum);
             }
             activation = newActivations;
@@ -191,12 +191,4 @@ std::vector<float> Network::calculateCost(std::vector<std::vector<float>> activa
         costs.push_back(cost);
     }
     return costs;
-}
-
-float Network::calculateAverageCost(const std::vector<float>& costs) {
-    float sum = 0;
-    for (float cost : costs) {
-        sum += cost;
-    }
-    return sum / costs.size();
 }
