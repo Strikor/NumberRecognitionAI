@@ -84,11 +84,11 @@ void Network::learn(int batchSize, int epochs) {
             std::cout << k << "/" << data.getNumItems() << "]" << std::endl;
  
         }
-    }
 
-    // Calculate success rate
-    float successRate = static_cast<float>(correctCount) / data.getNumItems();
-    std::cout << "Success rate of the current epoch: " << successRate * 100 << "%" << std::endl;
+        // Calculate success rate
+        float successRate = static_cast<float>(correctCount) / data.getNumItems();
+        std::cout << "Success rate of the current epoch: " << successRate * 100 << "%" << std::endl;
+    }
 }
 
 std::vector<int> Network::createRandomIndexes(int numIndexes, int maxIndex) {
