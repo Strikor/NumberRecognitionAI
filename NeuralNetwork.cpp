@@ -114,50 +114,62 @@ std::vector<int> Network::createRandomIndexes(int numIndexes, int maxIndex) {
     return result;
 }
 
-int Network::backpropagate(const std::vector<std::vector<float>> activations, const std::vector<float> expected) {
-    // Take the activations from the feedforward and compare to one-hots
-    // Calculate cost for each output node
-    std::vector<float> errors(activations[activations.size() - 1].size());
-    for (int i = 0; i < activations[activations.size() - 1].size(); ++i) {
-        errors[i] = activations[activations.size() - 1][i] - expected[i];
-    }
+void Network::backpropagate(const std::vector<std::vector<std::vector<float>>> &allActivations, const std::vector<std::vector<float>> &expected) {
+    // Initialize weight and bias updates
+    std::vector<std::vector<std::vector<float>>> weightUpdates(weights.size());
+    std::vector<std::vector<float>> biasUpdates(biases.size());
 
-    // Update weights and biases
-    for (int i = layers - 2; i >= 0; --i) {
-        std::vector<float> newErrors(nodes[i]);
-        for (int j = 0; j < nodes[i]; ++j) {
-            for (int k = 0; k < nodes[i + 1]; ++k) {
-                weights[i][j][k] -= learnRate * errors[k] * activations[i][k];
-                newErrors[j] += errors[k] * weights[i][j][k];
+    // Calculate updates for each image in the batch
+    for (int n = 0; n < allActivations.size(); ++n) {
+        const std::vector<std::vector<float>> &activations = allActivations[n];
+        const std::vector<float> &expectedOutput = expected[n];
+
+        // Calculate output errors
+        std::vector<float> errors(activations.back().size());
+        for (int i = 0; i < activations.back().size(); ++i) {
+            errors[i] = activations.back()[i] - expectedOutput[i];
+        }
+
+        // Backpropagate errors and calculate updates
+        for (int i = layers - 2; i >= 0; --i) {
+            std::vector<float> newErrors(nodes[i]);
+            for (int j = 0; j < nodes[i]; ++j) {
+                for (int k = 0; k < nodes[i + 1]; ++k) {
+                    float update = learnRate * errors[k] * activations[i][j];
+                    weightUpdates[i][j][k] += update;
+                    newErrors[j] += errors[k] * weights[i][j][k];
+                }
+            }
+            errors = newErrors;
+            for (int j = 0; j < nodes[i + 1]; ++j) {
+                biasUpdates[i][j] += learnRate * errors[j];
             }
         }
-        errors = newErrors;
+    }
+
+    // Average updates and apply them to weights and biases
+    for (int i = 0; i < layers - 1; ++i) {
+        for (int j = 0; j < nodes[i]; ++j) {
+            for (int k = 0; k < nodes[i + 1]; ++k) {
+                weights[i][j][k] -= weightUpdates[i][j][k] / allActivations.size();
+            }
+        }
         for (int j = 0; j < nodes[i + 1]; ++j) {
-            biases[i][j] -= learnRate * errors[j];
+            biases[i][j] -= biasUpdates[i][j] / allActivations.size();
         }
     }
-
-    // Return the index of the output node with the highest activation
-    int maxIndex = 0;
-    float maxActivation = activations[activations.size() - 1][0];
-    for (int i = 1; i < activations[activations.size() - 1].size(); ++i) {
-        if (activations[activations.size() - 1][i] > maxActivation) {
-            maxActivation = activations[activations.size() - 1][i];
-            maxIndex = i;
-        }
-    }
-
-    return maxIndex;
 }
 
-std::vector<std::vector<float>> Network::feedforward(std::vector<std::vector<float>> batch, std::vector<std::vector<float>> labels){
-    //Run through the network and retrieve an output
-    //calculate and return final layer activation
+std::vector<std::vector<std::vector<float>>> Network::feedforward(std::vector<std::vector<float>> batch){
+    // Run through the network and retrieve an output
+    // Calculate and return all layer activations for each image
 
-    std::vector<std::vector<float>> activations;
+    std::vector<std::vector<std::vector<float>>> allActivations;
 
     for(int i = 0; i < batch.size(); ++i) {
+        std::vector<std::vector<float>> activations;
         std::vector<float> activation = batch[i];
+        activations.push_back(activation); // Store input layer activations
         for(int j = 0; j < layers - 1; ++j) {
             std::vector<float> newActivations;
             for(int k = 0; k < nodes[j + 1]; ++k) {
@@ -171,12 +183,12 @@ std::vector<std::vector<float>> Network::feedforward(std::vector<std::vector<flo
                 newActivations.push_back(activatedSum);
             }
             activation = newActivations;
+            activations.push_back(activation); // Store this layer's activations
         }
-        activations.push_back(activation);
+        allActivations.push_back(activations);
     }
     
-    return activations;
-
+    return allActivations;
 }
 std::vector<float> Network::calculateCost(std::vector<std::vector<float>> activations, std::vector<float> expected){
     //Calculate the cost of the activations
