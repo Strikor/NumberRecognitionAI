@@ -10,9 +10,10 @@ class Network {
 public:
     Network(const int layers, const std::vector<int>& nodes, const float learn);
     void learn(int batchSize); //The actual learning cycle
-    std::vector<std::vector<float>> feedforward(const std::vector<std::vector<float>> image, std::vector<std::vector<float>> expected); //Output consists of one-hot encoded vector //Output is cost
-    std::vector<float> calculateCost(const std::vector<std::vector<float>> activations, const std::vector<float> expected); //Cost function
-    int backpropagate(const std::vector<std::vector<float>> activations, std::vector<float> expected);
+    std::vector<std::vector<std::vector<float>>> feedforward(std::vector<std::vector<float>> batch);
+    //Output consists of one-hot encoded vector //Output is cost
+    std::vector<float> calculateCost(const std::vector<std::vector<std::vector<float>>> activations, const std::vector<float> expected); //Cost function
+    int backpropagate(const std::vector<std::vector<std::vector<float>>>& allActivations, const std::vector<std::vector<float>>& expected);
 
 private:
     int                 layers; //Total Layers
