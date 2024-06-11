@@ -48,17 +48,19 @@ Network::Network(const int layers, const std::vector<int>& nodes, const float le
     lable = IDXfile("train-labels.idx1-ubyte");
 }
 
-void Network::learn(int batchSize) {
+void Network::learn(int batchSize, int epochs) {
     //loop
     int correctCount = 0;
-    for (int i = 0; i < data.getNumItems(); ++i) {
-        //Figure out what the ideal batch size is and what I should use for it
-        std::vector<std::vector<float>> images;
-        std::vector<std::vector<float>> labels = lable.getLabels();
 
-        for (int j = 0; j < data.getNumItems(); ++j) {
-            images.push_back(data.getImage());
-        }
+    //Figure out what the ideal batch size is and what I should use for it
+    std::vector<std::vector<float>> images;
+    std::vector<std::vector<float>> labels = lable.getLabels();
+
+    for (int j = 0; j < data.getNumItems(); ++j) {
+        images.push_back(data.getImage());
+    }
+
+    for (int i = 0; i < epochs; ++i) {
 
         //Randomly shuffle the images vector
         std::vector<int> batches = createRandomIndexes(images.size(), images.size() - 1);
@@ -78,16 +80,9 @@ void Network::learn(int batchSize) {
                 expected.push_back(labels[batches[k + m]]);
             }
 
-            backpropagate(activations, expected);
-            /*int predictedIndex = 
-       
-            // Check if the prediction is correct
-            if (predictedIndex == expected[0]) {
-            correctCount++;
-            std::cout << "Test " << i << " - Correct prediction! Expected: " << expected[0] << ", Predicted: " << predictedIndex << std::endl;
-            } else {
-            std::cout << "Test " << i << " - Incorrect prediction! Expected: " << expected[0] << ", Predicted: " << predictedIndex << std::endl;
-            }*/
+            correctCount += backpropagate(activations, expected);
+            std::cout << k << "/" << data.getNumItems() << "]" << std::endl;
+ 
         }
     }
 
@@ -149,13 +144,13 @@ int Network::backpropagate(const std::vector<std::vector<std::vector<float>>> &a
         }
 
         // Check if the prediction is correct
-        int predictedIndex = std::distance(activations.back().begin(), std::max_element(activations.back().begin(), activations.back().end()));
+        /*int predictedIndex = std::distance(activations.back().begin(), std::max_element(activations.back().begin(), activations.back().end()));
         int expectedIndex = std::distance(expectedOutput[n].begin(), std::max_element(expectedOutput[n].begin(), expectedOutput[n].end()));
         if (predictedIndex == expectedIndex) {
             std::cout << "Prediction: " << predictedIndex << ", Expected: " << expectedIndex << " - Correct" << std::endl;
         } else {
             std::cout << "Prediction: " << predictedIndex << ", Expected: " << expectedIndex << " - Incorrect" << std::endl;
-        }
+        }*/
     }
 
     // Average updates and apply them to weights and biases
@@ -181,9 +176,9 @@ int Network::backpropagate(const std::vector<std::vector<std::vector<float>>> &a
         }
     }
     float percentCorrect = static_cast<float>(correctCount) / allActivations.size() * 100;
-    std::cout << "Percent correct for the batch: " << percentCorrect << "%" << std::endl;
+    std::cout << "Percent correct for the batch: " << percentCorrect << "%\t[";
 
-    return 0;
+    return correctCount;
 }
 
 std::vector<std::vector<std::vector<float>>> Network::feedforward(std::vector<std::vector<float>> batch){
