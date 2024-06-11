@@ -169,6 +169,20 @@ int Network::backpropagate(const std::vector<std::vector<std::vector<float>>> &a
             biases[i][j] -= biasUpdates[i][j] / allActivations.size();
         }
     }
+
+    // Calculate percent correct for the batch
+    int correctCount = 0;
+    for (int n = 0; n < allActivations.size(); ++n) {
+        const std::vector<std::vector<float>> &activations = allActivations[n];
+        int predictedIndex = std::distance(activations.back().begin(), std::max_element(activations.back().begin(), activations.back().end()));
+        int expectedIndex = std::distance(expectedOutput[n].begin(), std::max_element(expectedOutput[n].begin(), expectedOutput[n].end()));
+        if (predictedIndex == expectedIndex) {
+            correctCount++;
+        }
+    }
+    float percentCorrect = static_cast<float>(correctCount) / allActivations.size() * 100;
+    std::cout << "Percent correct for the batch: " << percentCorrect << "%" << std::endl;
+
     return 0;
 }
 
