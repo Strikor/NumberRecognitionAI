@@ -79,9 +79,8 @@ void Network::learn(int batchSize) {
             }
             std::vector<float> costs = calculateCost(activations, expected);
 
-            //Use cost for backpropagate()
-            int predictedIndex = backpropagate(activations[activations.size() - 1], expected);
-
+            int predictedIndex = backpropagate(activations, expected);
+       
             // Check if the prediction is correct
             if (predictedIndex == expected[0]) {
             correctCount++;
@@ -115,12 +114,12 @@ std::vector<int> Network::createRandomIndexes(int numIndexes, int maxIndex) {
     return result;
 }
 
-int Network::backpropagate(const std::vector<float> activations, const std::vector<float> expected) {
+int Network::backpropagate(const std::vector<std::vector<float>> activations, const std::vector<float> expected) {
     // Take the activations from the feedforward and compare to one-hots
     // Calculate cost for each output node
-    std::vector<float> errors(activations.size());
-    for (int i = 0; i < activations.size(); ++i) {
-        errors[i] = activations[i] - expected[i];
+    std::vector<float> errors(activations[activations.size() - 1].size());
+    for (int i = 0; i < activations[activations.size() - 1].size(); ++i) {
+        errors[i] = activations[activations.size() - 1][i] - expected[i];
     }
 
     // Update weights and biases
@@ -128,7 +127,7 @@ int Network::backpropagate(const std::vector<float> activations, const std::vect
         std::vector<float> newErrors(nodes[i]);
         for (int j = 0; j < nodes[i]; ++j) {
             for (int k = 0; k < nodes[i + 1]; ++k) {
-                weights[i][j][k] -= learnRate * errors[k] * activations[j];
+                weights[i][j][k] -= learnRate * errors[k] * activations[i][k];
                 newErrors[j] += errors[k] * weights[i][j][k];
             }
         }
@@ -140,10 +139,10 @@ int Network::backpropagate(const std::vector<float> activations, const std::vect
 
     // Return the index of the output node with the highest activation
     int maxIndex = 0;
-    float maxActivation = activations[0];
-    for (int i = 1; i < activations.size(); ++i) {
-        if (activations[i] > maxActivation) {
-            maxActivation = activations[i];
+    float maxActivation = activations[activations.size() - 1][0];
+    for (int i = 1; i < activations[activations.size() - 1].size(); ++i) {
+        if (activations[activations.size() - 1][i] > maxActivation) {
+            maxActivation = activations[activations.size() - 1][i];
             maxIndex = i;
         }
     }
