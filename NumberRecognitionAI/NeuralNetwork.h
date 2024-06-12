@@ -4,14 +4,16 @@
 // 6/7/2023
 
 #include <vector>
+#include "IDXfile_Import.h"
 
 class Network {
 public:
     Network(const int layers, const std::vector<int>& nodes, const float learn);
-    void learn(int batchSize); //The actual learning cycle
-    std::vector<float> feedforward(const std::vector<std::vector<float>> image, std::vector<std::vector<float>> expected); //Output consists of one-hot encoded vector //Output is cost
-    std::vector<float> calculateCost(const std::vector<float> activations, const std::vector<float> expected); //Cost function
-    int backpropagate(const std::vector<float> activations, std::vector<float> expected);
+    void learn(int batchSize, int epochs); //The actual learning cycle
+    std::vector<std::vector<std::vector<float>>> feedforward(std::vector<std::vector<float>> batch);
+    //Output consists of one-hot encoded vector //Output is cost
+    std::vector<float> calculateCost(const std::vector<std::vector<std::vector<float>>> activations, const std::vector<float> expected); //Cost function
+    int backpropagate(const std::vector<std::vector<std::vector<float>>>& allActivations, const std::vector<std::vector<float>>& expected);
 
 private:
     int                 layers; //Total Layers
@@ -29,6 +31,8 @@ private:
     //[layer - 1][node]bias
         //biases are tied to a specific neuron instead of the intermediate layer
 	std::vector<std::vector<float>> biases;
+
+    std::vector<int> createRandomIndexes(int numIndexes, int maxIndex);
 
 
 
