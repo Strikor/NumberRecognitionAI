@@ -87,7 +87,8 @@ void Network::learn(int batchSize, int epochs) {
 
         // Calculate success rate
         float successRate = static_cast<float>(correctCount) / data.getNumItems();
-        std::cout << "Success rate of the current epoch: " << successRate * 100 << "%" << std::endl;
+        std::cout << std::endl << "Success rate of the current epoch [" << i + 1 << "]: " << successRate * 100 << " % " << std::endl << std::endl;
+        correctCount = 0;
     }
 }
 
