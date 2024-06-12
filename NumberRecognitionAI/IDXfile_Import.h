@@ -19,7 +19,6 @@ public:
 			ret.push_back(data[curByte]);
 			++curByte;
 		}
-		++curImage;
 
 		return ret;
 	}
@@ -37,7 +36,6 @@ private:
 	std::vector<float> data; //Used only for files containing image data or some other data
 	std::vector<std::vector<float>> one_hot_encoded_labels; //Used only for the labels
 	int curByte    = 0;
-	int curImage   = 0;
 	int magicNum   = 0;
 	int numItems   = 0;
 	int rows	   = 0;
