@@ -1,6 +1,6 @@
 // All NN model functions for MNIST dataset
 // Jason Graham
-// 6/18/2023
+// 6/18/2024
 
 #include "NeuralNetwork.h"
 #include "IDXfile_Import.h"
