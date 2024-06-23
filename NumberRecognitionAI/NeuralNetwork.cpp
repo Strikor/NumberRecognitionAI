@@ -211,6 +211,8 @@ std::vector<std::vector<std::vector<float>>> Network::feedforward(std::vector<st
     
     return allActivations;
 }
+
+//Depricated & completely unused in final version
 std::vector<float> Network::calculateCost(std::vector<std::vector<std::vector<float>>> activations, std::vector<float> expected){
     //Calculate the cost of the activations
     //Return the cost
