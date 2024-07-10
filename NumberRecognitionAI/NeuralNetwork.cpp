@@ -87,7 +87,8 @@ void Network::learn(int batchSize, int epochs) {
 
         // Calculate success rate
         float successRate = static_cast<float>(correctCount) / data.getNumItems();
-        std::cout << "Success rate of the current epoch: " << successRate * 100 << "%" << std::endl;
+        std::cout << std::endl << "Success rate of the current epoch [" << i + 1 << "]: " << successRate * 100 << " % " << std::endl << std::endl;
+        correctCount = 0;
     }
 }
 
@@ -116,7 +117,7 @@ int Network::backpropagate(const std::vector<std::vector<std::vector<float>>> &a
 
     // Calculate updates for each image in the batch
     for (int n = 0; n < allActivations.size(); ++n) {
-        const std::vector<std::vector<float>> &activations = allActivations[n];
+        const std::vector<std::vector<float>> &activations = allActivations[n]; // Put this code into it's own mutex locked loop to allow for multithreading
 
         // Calculate output errors
         std::vector<float> errors(activations.back().size());
@@ -136,11 +137,12 @@ int Network::backpropagate(const std::vector<std::vector<std::vector<float>>> &a
                     newErrors[j] += errors[k] * weights[i][j][k];
                 }
             }
-            errors = newErrors;
+            
             biasUpdates[i].resize(nodes[i + 1]);
             for (int j = 0; j < nodes[i + 1]; ++j) {
                 biasUpdates[i][j] += learnRate * errors[j];
             }
+            errors = newErrors;
         }
 
         // Check if the prediction is correct
