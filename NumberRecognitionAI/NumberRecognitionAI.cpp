@@ -8,7 +8,7 @@
 int main()
 {
     // Create a neural network object
-    Network network(4, { 784, 6, 6, 10 }, 0.05);
+    Network network(4, { 784, 20, 20, 10 }, 0.05);
 
     // Train the network
     network.learn(32, 10);
