@@ -4,9 +4,13 @@
 
 #include "NeuralNetwork.h"
 #include "IDXfile_Import.h"
+#include "Display.h"
 #include <vector>
 #include <set>
 #include <random>
+#include <thread>
+
+std::thread displayThread;
 
 Network::Network(const int layers, const std::vector<int>& nodes, const float learn){
     //Establish Hyper Parameters
@@ -43,9 +47,13 @@ Network::Network(const int layers, const std::vector<int>& nodes, const float le
         }
     }
 
+    std::cout << "Weights and Biases Initialized" << std::endl;
+
     //Grab data from file
     data = IDXfile("train-images.idx3-ubyte");
+    std::cout << "Raw Data Retrived" << std::endl;
     lable = IDXfile("train-labels.idx1-ubyte");
+    std::cout << "Data Labels Retrived" << std::endl;
 }
 
 void Network::learn(int batchSize, int epochs) {
@@ -65,6 +73,7 @@ void Network::learn(int batchSize, int epochs) {
         //Randomly shuffle the images vector
         std::vector<int> batches = createRandomIndexes(images.size(), images.size() - 1);
 
+        int b = 0; // Counts how many batches have gone by
         for (int k = 0; k < batches.size(); k += batchSize) {
             std::vector<std::vector<float>> batch;
             for (int l = 0; l < batchSize; ++l) {
@@ -82,6 +91,17 @@ void Network::learn(int batchSize, int epochs) {
 
             correctCount += backpropagate(activations, expected);
             std::cout << k << "/" << data.getNumItems() << "]" << std::endl;
+            b++;
+
+            if (b % 100 == 0) {
+                if (displayThread.joinable()) {
+                    Display::shouldEnd = true;
+                    displayThread.join();
+                    Display::shouldEnd = false;
+                }
+                std::thread t(Display::visualizeActivations, activations[batchSize - 1]);
+                displayThread = std::move(t);
+            }
  
         }
 

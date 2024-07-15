@@ -4,6 +4,7 @@
 #include <iostream>
 #include "NeuralNetwork.h"
 #include "IDXfile_Import.h"
+#include "Display.h"
 
 int main()
 {
