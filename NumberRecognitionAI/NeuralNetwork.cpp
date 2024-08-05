@@ -132,7 +132,10 @@ int Network::backpropagate(const std::vector<std::vector<std::vector<float>>> &a
             for (int j = 0; j < nodes[i]; ++j) {
                 weightUpdates[i][j].resize(nodes[i + 1]);
                 for (int k = 0; k < nodes[i + 1]; ++k) {
-                    float update = learnRate * errors[k] * activations[i][j];
+                    //Derivative of ReLU function
+                    float activation_derivative = activations[i + 1][k] > 0 ? 1 : 0;
+
+                    float update = learnRate * errors[k] * activation_derivative * activations[i][j];
                     weightUpdates[i][j][k] += update;
                     newErrors[j] += errors[k] * weights[i][j][k];
                 }
@@ -140,7 +143,8 @@ int Network::backpropagate(const std::vector<std::vector<std::vector<float>>> &a
             
             biasUpdates[i].resize(nodes[i + 1]);
             for (int j = 0; j < nodes[i + 1]; ++j) {
-                biasUpdates[i][j] += learnRate * errors[j];
+                float activation_derivative = activations[i + 1][j] > 0 ? 1 : 0;
+                biasUpdates[i][j] += learnRate * errors[j] * activation_derivative;
             }
             errors = newErrors;
         }
